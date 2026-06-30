@@ -1,4 +1,4 @@
-# > 咸鱼/闲鱼 界面精简稳定最优版 (剔除推荐流)
+# > 咸鱼/闲鱼 界面精简完美平衡版 (恢复正常商品刷新)
 # > 专属配置：Hubfilter / QuantumultX
 
 hostname = acs.m.goofish.com, g-acs.m.goofish.com
@@ -13,24 +13,24 @@ host-suffix, iyes.youku.com, reject
 # > 2. 精简首页顶部服务、频道 Tab（省钱卡、圈子等）
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.circle.list url jsonjq-response-body 'del(.data.circleList) | del(.data.tabList)'
 
-# > 3. 【核心优化】彻底剔除首页双列“推荐商品信息流”
-# 逻辑：直接清空 sections 节点，让首页除了顶部的搜索框和横幅外，下方不再无限滚动加载垃圾推荐
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url jsonjq-response-body '.data.homeTopList = [] | .data.sections = []'
+# > 3. 【精准修复】恢复首页商品流，但剔除其中的广告/营销卡片
+# 逻辑：不再清空 sections，而是只筛选出真正的二手商品卡片（bizType == "item"）
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url jsonjq-response-body '.data.homeTopList |= [ .[0] ] | .data.sections |= map(select(.data.bizType == "item" or .template.componentType == "item"))'
 
-# > 4. 【核心优化】彻底剔除商品详情页底部的“相关推荐/猜你喜欢”商品流
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.item.recommend url jsonjq-response-body '.data.cardList = [] | .data.sections = []'
+# > 4. 【精准修复】恢复详情页底部推荐，但屏蔽“妈妈广告(mamaAD)”
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.item.recommend url jsonjq-response-body '.data.cardList |= map(select(.cardData.bizType != "mamaAD"))'
 
-# > 5. 搜索框及搜索发现净化（清空搜索框下的动态词、搜索发现词）
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.shade url jsonjq-response-body '.data.singleShadeWords = [] | .data.shadeWords = []'
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.item.search.activate url jsonjq-response-body '.data.cardList = [] | .data.hotWords = []'
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.discover url jsonjq-response-body 'del(.data.resultList) | del(.data.discoverWords)'
+# > 5. 搜索框及搜索发现净化
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.shade url jsonjq-response-body '.data.singleShadeWords = [{}]'
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.item.search.activate url jsonjq-response-body '.data.cardList = [{}]'
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.discover url jsonjq-response-body 'del(.data.resultList)'
 
 # > 6. 我的页面深度净化（仅保留头像、个人信息、买卖交易核心，去除营销）
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.user.page.my.adapter url jsonjq-response-body '.data.ability=[] | .data.container.sections |= map(select(.sectionBizCode | test("head|user|trade")))'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.item.buy.feeds url jsonjq-response-body 'del(.data.sections)'
 
-# > 7. 屏蔽同城/本地信息流
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.local.home url jsonjq-response-body '.data.sections = []'
+# > 7. 恢复本地/同城信息流，但只过滤纯广告
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.local.home url jsonjq-response-body '.data.sections |= map(select(.data.bizType == "item"))'
 
 # > 8. AMDC 阻断
 ^http:\/\/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){1,4}(:\d+)?\/amdc\/mobileDispatch url script-response-body https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/amdc.js
