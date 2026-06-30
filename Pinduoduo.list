@@ -1,32 +1,27 @@
 # ==========================================================================
-# > 拼多多（PDD）防直连、防IP绕过终极分流补丁
+# > 拼多多（PDD）纯分流广告与视频拦截流（不折腾/无解密/稳定版）
 # > 专属定制：Hubfilter / QuantumultX
 # ==========================================================================
 
-# ----------------- 1. 域名劫持强导（强迫流量过圈X代理层） -----------------
-HOST-KEYWORD, pinduoduo, PROXY
-HOST-KEYWORD, yangkeduo, PROXY
-HOST-SUFFIX, pinduoduo.com, PROXY
-HOST-SUFFIX, yangkeduo.com, PROXY
+# > 1. 拦截“多多视频”流及视频缓存（让视频页彻底瘫痪、无法加载）
+HOST-KEYWORD, pddvideo, REJECT
+HOST-SUFFIX, pddvideo.pinduoduo.com, REJECT
+HOST-SUFFIX, video.yangkeduo.com, REJECT
 
-# ----------------- 2. 调度网关阻断（切断阿里系AMDC公共借道） -----------------
+# > 2. 拦截拼多多的追踪、日志上报及广告统计（减少后台小动作和摇一摇广告）
+HOST, t-track.pinduoduo.com, REJECT
+HOST, track.pinduoduo.com, REJECT
+HOST, log.pinduoduo.com, REJECT
+HOST, stat.pinduoduo.com, REJECT
+HOST, analytics.pinduoduo.com, REJECT
+
+# > 3. 拦截拼多多的弹窗、营销下发和广告位资源
+HOST, api.xunmeng.pinduoduo.com, REJECT
 HOST, amdc.m.taobao.com, REJECT
 HOST, amdc.alipay.com, REJECT
 
-# ----------------- 3. 自治系统号捕获（ASN 级别地毯式拦截） -----------------
-# 拦截拼多多官方注册的核心骨干网络 ASN 流量，强制其走代理
-IP-ASN, 137452, PROXY, no-resolve
-IP-ASN, 139199, PROXY, no-resolve
-IP-ASN, 55990, PROXY, no-resolve
-
-# ----------------- 4. 核心 IP CIDR 网段无死角防线 -----------------
-# 包含拼多多核心 BGP 机房、CDN 加速节点及内测反代服务器等常见 IP 段
-IP-CIDR, 101.33.26.0/23, PROXY, no-resolve
-IP-CIDR, 121.5.176.0/21, PROXY, no-resolve
-IP-CIDR, 129.226.0.0/16, PROXY, no-resolve
-IP-CIDR, 150.109.0.0/16, PROXY, no-resolve
-IP-CIDR, 152.136.0.0/16, PROXY, no-resolve
-IP-CIDR, 162.14.0.0/16, PROXY, no-resolve
-IP-CIDR, 175.24.160.0/19, PROXY, no-resolve
-IP-CIDR, 175.27.0.0/19, PROXY, no-resolve
-IP-CIDR, 203.205.128.0/17, PROXY, no-resolve
+# > 4. 拼多多正常购物、支付、看订单流量放行（走直连，不影响日常使用）
+HOST-KEYWORD, pinduoduo, DIRECT
+HOST-KEYWORD, yangkeduo, DIRECT
+HOST-SUFFIX, pinduoduo.com, DIRECT
+HOST-SUFFIX, yangkeduo.com, DIRECT
