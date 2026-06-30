@@ -1,0 +1,27 @@
+# > 拼多多（PDD）界面精简最优稳定版
+# > 专属配置：Hubfilter / QuantumultX
+# > 需求：干掉限时秒杀、多多买菜、推金币、9.9特卖、多多视频、返场狂减降价等
+
+hostname = api.pinduoduo.com, api.yangkeduo.com
+
+# > 1. 屏蔽启动开屏广告及首页首次冷启动弹窗
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/alexa\/v\d\/init url jsonjq-response-body 'del(.data.splash) | del(.data.popup)'
+
+# > 2. 【核心增强】精简首页金刚位图标（精准绝杀：限时秒杀、多多买菜、推金币、9.9特卖等）
+# 逻辑：利用正则过滤掉标题中包含秒杀、买菜、金币、9.9特卖、大牌清仓、多多果园等垃圾营销图标
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/index url jsonjq-response-body 'del(.data.top_banners) | .data.buffer_tiles = [] | if .data.operation_widgets then .data.operation_widgets |= map(select(.title | test("秒杀|买菜|金币|9.9|特卖|果园|现金|抽奖|清仓") | not)) else . end'
+
+# > 3. 【核心增强】净化底栏 Tab 栏（精准绝杀：多多视频、返场狂减降价等）
+# 逻辑：白名单硬过滤，只允许 首页(index)、分类(classification)、聊天/消息(chat)、个人中心(me) 通过，其余的一律切除
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/tabs url jsonjq-response-body 'if .data.tabs then .data.tabs |= map(select(.link_url | test("index|classification|chat|me"))) | .data.tabs |= map(select(.text | test("视频|返场|狂减|降价|大促") | not)) else . end'
+
+# > 4. 个人中心（我的）深度去营销
+# 逻辑：干掉满屏的省钱卡广告、领现金牛皮癣、砸金蛋横幅
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/erdos\/v\d\/user\/center url jsonjq-response-body 'del(.data.identity_components) | del(.data.banner_list) | .data.tools_module = []'
+
+# > 5. 屏蔽页面内的各种营销悬浮窗（拒绝摇一摇领现金、砸金蛋红包）
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/floating\/window url jsonjq-response-body '.data = {}'
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/v\d\/popup url jsonjq-response-body '.data = {}'
+
+# > 6. 商品详情页精简（去掉无脑诱导拼单的滚动弹窗）
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/oak\/integration\/render url jsonjq-response-body 'del(.data.bottom_bar.widgets) | del(.data.popup_cards)'
