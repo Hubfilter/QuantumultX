@@ -1,7 +1,7 @@
-# > 咸鱼/闲鱼 界面精简终极定制版 (JS重组底栏版)
+# > 咸鱼/闲鱼 界面精简终极定制版 (扩大包围圈版)
 # > 专属配置：Hubfilter / QuantumultX
 
-hostname = acs.m.goofish.com, g-acs.m.goofish.com
+hostname = acs.m.goofish.com, g-acs.m.goofish.com, acs.m.taobao.com
 
 host-suffix, iyes.youku.com, reject
 
@@ -10,29 +10,29 @@ host-suffix, iyes.youku.com, reject
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.ad.expose url reject-200
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.user.strategy.list url jsonjq-response-body '.data.strategies = [{}]'
 
-# > 2. 精简首页顶部服务、频道 Tab（集市、圈子、回收等）
+# > 2. 精简首页顶部服务、频道 Tab
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.circle.list url jsonjq-response-body 'del(.data.circleList) | del(.data.tabList)'
 
-# > 3. 【核心换代】使用本地/远程 JS 暴力清洗首页流与底栏
+# > 3. 【拦截范围扩大】用 JS 暴力清洗首页、底栏、全局以及淘宝容器下发的所有可能配置
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
-
-# > 4. 【核心换代】拦截全量配置接口，彻底不给同城底栏留后路
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.(home|global).config url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.home.config url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
+# 针对近年阿里系切换到通用框架容器下发底栏数据的补漏拦截
+^https?:\/\/(g-)?acs\.m\.(goofish|taobao)\.com\/gw\/mtop.taobao.mcl.container.get url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
 
-# > 5. 搜索框及猜你喜欢
+# > 4. 搜索框及猜你喜欢
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.shade url jsonjq-response-body '.data.singleShadeWords = [] | .data.shadeWords = []'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.item.search.activate url jsonjq-response-body '.data.cardList = [] | .data.hotWords = []'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.discover url jsonjq-response-body 'del(.data.resultList) | del(.data.discoverWords)'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search url jsonjq-response-body '.data.resultList |= map(select(.data.item.main.clickParam.args.biz_type == "item"))'
 
-# > 6. 我的页面深度净化
+# > 5. 我的页面深度净化
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.user.page.my.adapter url jsonjq-response-body '.data.ability=[] | .data.container.sections |= map(select(.sectionBizCode | test("head|user|trade")))'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.item.buy.feeds url jsonjq-response-body 'del(.data.sections)'
 
-# > 7. 本地及商品详情推荐流
+# > 6. 本地及商品详情推荐流
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.local.home url jsonjq-response-body '.data.sections |= map(select(.data.bizType == "item"))'
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.item.recommend url jsonjq-response-body '.data.cardList |= map(select(.cardData.bizType != "mamaAD"))'
 
-# > 8. AMDC阻断
+# > 7. AMDC阻断
 ^http:\/\/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){1,4}(:\d+)?\/amdc\/mobileDispatch url script-response-body https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/amdc.js
