@@ -1,15 +1,53 @@
-# ==========================================================================
-# > 拼多多（PDD）纯 JS 界面净化补丁
-# > 专属定制：Hubfilter / QuantumultX
-# ==========================================================================
+//  当前文件内容仅供个人学习和研究使用，若使用过程中发生任何问题概不负责
 
-hostname = api.pinduoduo.com, api.yangkeduo.com, *.pinduoduo.com, *.yangkeduo.com, amdc.m.taobao.com
+let url = $request.url;
+let body = $response.body;
+let obj = JSON.parse(body);
 
-# > 1. 强行置空阿里/大厂的核心动态调度网关（迫使 PDD 降级走常规域名，让 JS 抓到包）
-^https?:\/\/amdc\.m\.taobao\.com\/amdc\/live url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
+try {
+  if (url.indexOf("/homepage/hub") != -1) {
+    //  底部菜单
+    //const tabArray = ["多多视频", "大促会场"];
+    const tabArray = ["首页", "聊天", "个人中心"];
+    if (obj?.result?.bottom_tabs) {
+      obj.result.bottom_tabs = obj.result.bottom_tabs.filter(tab => tabArray.includes(tab.title));
+    }
 
-# > 2. 核心：劫持底栏 Tab 数据流，利用 JS 动态切除“多多视频”
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/tabs url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
+    //  首页顶部菜单频道
+    const topArray = [1];
+    if (obj?.result?.all_top_opts) {
+      //obj.result.all_top_opts = obj.result.all_top_opts.filter(top => topArray.includes(top.tab_id));
+      obj.result.all_top_opts = [];
+    }
 
-# > 3. 核心：劫持首页金刚位，利用 JS 切除秒杀、买菜、大促横幅
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/index url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
+    //  信息流和顶部菜单之间的栏目
+    //delete obj.result.icon_set;
+    delete obj.result.search_bar_hot_query;
+    //delete obj.result.dy_module.irregular_banner_dy.data;
+    
+    // irregular_banner_dy:首页顶部618横幅广告
+    // billion_subsidy_entrance:首页顶部百亿补贴栏目
+    // recommend_fresh_info:多多买菜栏目
+    // recommend_fresh_info_lite:多多买菜迷你?
+    const adArray = [
+      //"billion_subsidy_entrance",
+      //"billion_subsidy_entrance_dy",
+      //"billion_subsidy_entrance_lite",
+      "irregular_banner_dy", 
+      "irregular_banner", 
+      "ad_module", 
+      "icon_set",
+      "recommend_fresh_info",
+      "timeline"
+    ];
+    if (obj?.result?.module_order) {
+      obj.result.module_order = obj.result.module_order.filter(tab => !adArray.includes(tab.module_name));
+    }
+  }
+} catch (error) {
+  console.log("脚本执行出错:" + error.message);
+  console.log("url:" + url);
+}
+
+body = JSON.stringify(obj);
+$done({body});
