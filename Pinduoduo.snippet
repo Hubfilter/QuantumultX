@@ -1,8 +1,59 @@
 # ==========================================================================
-# > 拼多多（PDD）新版接口 JS 净化补丁
+# > 拼多多（PDD）全新首页与底栏净化一体化补丁（Snippet + JS 合并版）
 # ==========================================================================
 
 hostname = api.pinduoduo.com, api.yangkeduo.com
 
-# > 核心：劫持全新首页及底部菜单 hub 接口，并指引到你的 GitHub 真实 JS 路径
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/homepage\/hub url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
+# > 核心劫持：拦截全新首页及底部菜单 hub 接口，并直接在本地执行下方内嵌的 JS 脚本
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/homepage\/hub url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/Pinduoduo.snippet
+
+/*
+# 由于圈 X 支持读取 snippet 尾部的 JS 脚本，以下为注入的纯净洗包逻辑：
+*/
+
+let url = $request.url;
+let body = $response.body;
+
+if (body) {
+  try {
+    let obj = JSON.parse(body);
+
+    if (url.indexOf("/homepage/hub") != -1) {
+      // 1. 过滤底部菜单：只保留 首页、聊天、个人中心（切掉多多视频）
+      const tabArray = ["首页", "聊天", "个人中心"];
+      if (obj?.result?.bottom_tabs) {
+        obj.result.bottom_tabs = obj.result.bottom_tabs.filter(tab => tabArray.includes(tab.title));
+      }
+
+      // 2. 过滤首页顶部菜单频道
+      if (obj?.result?.all_top_opts) {
+        obj.result.all_top_opts = [];
+      }
+
+      // 3. 移除搜索栏热搜词
+      if (obj?.result) {
+        delete obj.result.search_bar_hot_query;
+      }
+      
+      // 4. 过滤核心金刚位与广告模块
+      const adArray = [
+        "irregular_banner_dy", 
+        "irregular_banner", 
+        "ad_module", 
+        "icon_set",
+        "recommend_fresh_info",
+        "timeline"
+      ];
+      if (obj?.result?.module_order) {
+        obj.result.module_order = obj.result.module_order.filter(tab => !adArray.includes(tab.module_name));
+      }
+    }
+
+    body = JSON.stringify(obj);
+
+  } catch (error) {
+    console.log("拼多多合并脚本执行出错:" + error.message);
+  }
+}
+
+$done({ body: body });
