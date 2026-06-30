@@ -1,44 +1,15 @@
 # ==========================================================================
-# > 拼多多（PDD）界面精简防绕过终极版
+# > 拼多多（PDD）纯 JS 界面净化补丁
 # > 专属定制：Hubfilter / QuantumultX
-# > 功能：绝杀限时秒杀、多多买菜、推金币、9.9特卖、多多视频、返场狂减降价及悬浮窗
 # ==========================================================================
 
-# 【终极全域捕获域名补丁】
-# 包含拼多多所有的动态三四级网关、静态资源服务器以及阿里/淘宝系的 AMDC 骨干网
-hostname = api.pinduoduo.com, api.yangkeduo.com, *.pinduoduo.com, *.yangkeduo.com, *pinduoduo*, *yangkeduo*, amdc.m.taobao.com
+hostname = api.pinduoduo.com, api.yangkeduo.com, *.pinduoduo.com, *.yangkeduo.com, amdc.m.taobao.com
 
-# --------------------------------------------------------------------------
-# > 1. 屏蔽启动开屏广告及首页首次冷启动弹窗
-# --------------------------------------------------------------------------
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/alexa\/v\d\/init url jsonjq-response-body 'del(.data.splash) | del(.data.popup)'
+# > 1. 强行置空阿里/大厂的核心动态调度网关（迫使 PDD 降级走常规域名，让 JS 抓到包）
+^https?:\/\/amdc\.m\.taobao\.com\/amdc\/live url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
 
-# --------------------------------------------------------------------------
-# > 2. 精简首页金刚位图标（精准绝杀：限时秒杀、多多买菜、推金币、9.9特卖等）
-# --------------------------------------------------------------------------
-# 逻辑：利用正则黑名单扫描金刚位标题，命中关键词的图标直接抹除，腾出干净的分类空间
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/index url jsonjq-response-body 'del(.data.top_banners) | .data.buffer_tiles = [] | if .data.operation_widgets then .data.operation_widgets |= map(select(.title | test("秒杀|买菜|金币|9.9|特卖|果园|现金|抽奖|清仓") | not)) else . end'
+# > 2. 核心：劫持底栏 Tab 数据流，利用 JS 动态切除“多多视频”
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/tabs url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
 
-# --------------------------------------------------------------------------
-# > 3. 净化底栏 Tab 栏（精准绝杀：多多视频、返场狂减降价等大促标签）
-# --------------------------------------------------------------------------
-# 逻辑：双重保险过滤。先用白名单强制只放行 index/classification/chat/me 四大核心路由，再用汉字黑名单补刀动态促销词
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/tabs url jsonjq-response-body 'if .data.tabs then .data.tabs |= map(select(.link_url | test("index|classification|chat|me"))) | .data.tabs |= map(select(.text | test("视频|返场|狂减|降价|大促") | not)) else . end'
-
-# --------------------------------------------------------------------------
-# > 4. 个人中心（我的）深度去营销
-# --------------------------------------------------------------------------
-# 逻辑：干掉满屏的省钱卡广告、领现金牛皮癣、砸金蛋横幅，只还原最纯粹的工具箱和订单管理
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/erdos\/v\d\/user\/center url jsonjq-response-body 'del(.data.identity_components) | del(.data.banner_list) | .data.tools_module = []'
-
-# --------------------------------------------------------------------------
-# > 5. 屏蔽页面内的各种营销悬浮窗（拒绝摇一摇领现金、砸金蛋红包）
-# --------------------------------------------------------------------------
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/floating\/window url jsonjq-response-body '.data = {}'
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/v\d\/popup url jsonjq-response-body '.data = {}'
-
-# --------------------------------------------------------------------------
-# > 6. 商品详情页精简
-# --------------------------------------------------------------------------
-# 逻辑：去掉详情页下方无脑诱导拼单的滚动滚动弹窗以及多余的营销组件
-^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/oak\/integration\/render url jsonjq-response-body 'del(.data.bottom_bar.widgets) | del(.data.popup_cards)'
+# > 3. 核心：劫持首页金刚位，利用 JS 切除秒杀、买菜、大促横幅
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/fresnel\/v\d\/index url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
