@@ -1,4 +1,5 @@
 # > 咸鱼/闲鱼 界面精简终极定制版 (JS重组底栏版)
+# > 专属配置：Hubfilter / QuantumultX
 
 hostname = acs.m.goofish.com, g-acs.m.goofish.com
 
@@ -13,12 +14,11 @@ host-suffix, iyes.youku.com, reject
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.circle.list url jsonjq-response-body 'del(.data.circleList) | del(.data.tabList)'
 
 # > 3. 【核心换代】使用本地/远程 JS 暴力清洗首页流与底栏
-# 注意：后面的链接请替换为你自己的 GitHub 仓库中 goofish_tab.js 的 Raw 链接
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
 
 # > 4. 【核心换代】拦截全量配置接口，彻底不给同城底栏留后路
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.(home|global).config url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.home.config url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.(home|global).config url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.home.config url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/goofish_tab.js
 
 # > 5. 搜索框及猜你喜欢
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.shade url jsonjq-response-body '.data.singleShadeWords = [] | .data.shadeWords = []'
