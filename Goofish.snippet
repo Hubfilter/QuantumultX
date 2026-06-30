@@ -1,5 +1,4 @@
-# > 咸鱼/闲鱼 界面精简终极定制版 (彻底绝杀同城底栏)
-# > 需求：首页顶部服务简化，底部【只保留】首页、发布、消息、我的，彻底干掉同城
+# > 咸鱼/闲鱼 界面精简终极定制版 (JS重组底栏版)
 
 hostname = acs.m.goofish.com, g-acs.m.goofish.com
 
@@ -13,13 +12,13 @@ host-suffix, iyes.youku.com, reject
 # > 2. 精简首页顶部服务、频道 Tab（集市、圈子、回收等）
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.circle.list url jsonjq-response-body 'del(.data.circleList) | del(.data.tabList)'
 
-# > 3. 【强力升级】首页框架、信息流、底栏动态 Tab 过滤
-# 逻辑：完全清空顶栏，过滤掉带同城(city/local)营销组件。同时对底栏(tabs/nodes)进行正则匹配，只要不是首页、发布、消息、我的、user、home、fishpublish、chat，就全部切除！
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url jsonjq-response-body '.data.homeTopList = [] | .data.sections |= map(select(.data.bizType == "item" or .template.componentType == "item")) | .data.sections |= map(select(.sectionCode | test("local|city|nearby|inside|town") | not)) | .data.tabList |= map(select(.tabName | test("首页|发布|消息|我的|home|publish|message|my|chat"))) | .data.footer.tabs |= map(select(.name | test("首页|发布|消息|我的"))) | .data.bottomTabs |= map(select(.title | test("首页|发布|消息|我的")))'
+# > 3. 【核心换代】使用本地/远程 JS 暴力清洗首页流与底栏
+# 注意：后面的链接请替换为你自己的 GitHub 仓库中 goofish_tab.js 的 Raw 链接
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlehome.home.nextfresh url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
 
-# > 4. 【新增针对底栏】可能独立下发的全局配置/Tab配置接口
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.home.config url jsonjq-response-body '.data.tabs |= map(select(.title | test("首页|发布|消息|我的"))) | .data.bottomTabList |= map(select(.name | test("首页|发布|消息|我的")))'
-^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.global.config url jsonjq-response-body '.data.tabs |= map(select(.title | test("首页|发布|消息|我的")))'
+# > 4. 【核心换代】拦截全量配置接口，彻底不给同城底栏留后路
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idle.(home|global).config url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
+^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.idle.home.config url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库名/refs/heads/master/goofish_tab.js
 
 # > 5. 搜索框及猜你喜欢
 ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop.taobao.idlemtopsearch.search.shade url jsonjq-response-body '.data.singleShadeWords = [] | .data.shadeWords = []'
