@@ -1,52 +1,8 @@
-//  当前文件内容仅供个人学习和研究使用，若使用过程中发生任何问题概不负责
+# ==========================================================================
+# > 拼多多（PDD）新版接口 JS 净化补丁
+# ==========================================================================
 
-let url = $request.url;
-let body = $response.body;
+hostname = api.pinduoduo.com, api.yangkeduo.com
 
-// 错误 1 修复：先判断 body 是否存在，再进行解析，防止抛出异常导致脚本崩溃
-if (body) {
-  try {
-    let obj = JSON.parse(body);
-
-    if (url.indexOf("/homepage/hub") != -1) {
-      //  底部菜单
-      const tabArray = ["首页", "聊天", "个人中心"];
-      if (obj?.result?.bottom_tabs) {
-        obj.result.bottom_tabs = obj.result.bottom_tabs.filter(tab => tabArray.includes(tab.title));
-      }
-
-      //  首页顶部菜单频道
-      if (obj?.result?.all_top_opts) {
-        obj.result.all_top_opts = [];
-      }
-
-      //  信息流和顶部菜单之间的栏目
-      if (obj?.result) {
-        delete obj.result.search_bar_hot_query;
-      }
-      
-      // 广告模块、横幅、买菜等栏目过滤
-      const adArray = [
-        "irregular_banner_dy", 
-        "irregular_banner", 
-        "ad_module", 
-        "icon_set",
-        "recommend_fresh_info",
-        "timeline"
-      ];
-      if (obj?.result?.module_order) {
-        obj.result.module_order = obj.result.module_order.filter(tab => !adArray.includes(tab.module_name));
-      }
-    }
-
-    // 将修改后的 JSON 对象重新转回字符串
-    body = JSON.stringify(obj);
-
-  } catch (error) {
-    console.log("拼多多脚本执行出错:" + error.message);
-    console.log("出错URL:" + url);
-  }
-}
-
-// 错误 2 修复：严格遵循 Quantumult X 的标准响应格式返回
-$done({ body: body });
+# > 核心：劫持全新首页及底部菜单 hub 接口，并指引到你的 GitHub 真实 JS 路径
+^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/homepage\/hub url script-response-body https://raw.githubusercontent.com/Hubfilter/QuantumultX/main/pdd_clean.js
