@@ -1,0 +1,12 @@
+#!name=Apple Intelligence 分流
+#!desc=把苹果智能 / Siri / 搜索相关域名分流到代理节点，解决在受限网络下报「网络错误」的问题。无 MITM，不改写任何请求。\n\n安装后点「PROXY 未指定」通知，选好你的节点组即可。
+#!tag=Apple, Apple Intelligence, 分流
+#!date=2026-06-11
+
+[Rule]
+DOMAIN,apple-relay.apple.com,PROXY
+DOMAIN,cp4.cloudflare.com,PROXY
+DOMAIN,apple-relay.cloudflare.com,PROXY
+DOMAIN,apple-relay.fastly-edge.com,PROXY
+DOMAIN,guzzoni.apple.com,PROXY
+DOMAIN-SUFFIX,smoot.apple.com,PROXY
